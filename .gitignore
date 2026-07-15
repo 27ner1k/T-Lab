@@ -3,6 +3,6 @@ build/
 *.o
 *.bin
 __pycache__/
-.venv/
+venv/
 .vscode/
 .idea/
