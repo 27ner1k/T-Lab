@@ -1,4 +1,3 @@
-data/
 build/
 *.o
 *.bin
@@ -7,3 +6,6 @@ venv/
 .vscode/
 .idea/
 main
+data/*.csv
+data/snap/
+data/tests_real_result/

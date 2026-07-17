@@ -4,10 +4,12 @@
 #include <sstream>
 #include <vector>
 #include <unordered_map>
+#include <cstdio>
 
 int main(int argc, char* argv[]) {
 
     std::ifstream f(argv[1]);
+    std::ofstream bin("edges.bin", std::ios::binary);
     std::string line;
     std::getline(f, line);
 
@@ -36,8 +38,13 @@ int main(int argc, char* argv[]) {
             degree_vertex.push_back(0);
         }
         degree_vertex[to_new_id[from]] += 1;
+        int32_t nf = to_new_id[from];
+        int32_t nt = to_new_id[to];
+        bin.write(reinterpret_cast<const char*>(&nf), sizeof(nf));
+        bin.write(reinterpret_cast<const char*>(&nt), sizeof(nt));
     }
     f.close();
+    bin.close();
 
     int32_t to_back_id_size = to_back_id.size();
     std::vector<double> vertex_rank(to_back_id_size, double (1 / double(to_back_id_size)));
@@ -56,30 +63,23 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < to_back_id_size; ++i)
             new_vertex_rank[i] = base;
 
-        std::ifstream f(argv[1]);
-        std::string line;
-        std::getline(f, line);
-        while (std::getline(f, line)) { 
-            std::stringstream ss(line);
-            std::string s_from, s_to;
-            std::getline(ss, s_from, ',');
-            std::getline(ss, s_to, ',');
-            int32_t from = std::stoi(s_from);
-            int32_t to = std::stoi(s_to);
-            int new_from = to_new_id[from];
-            int new_to = to_new_id[to];
+        std::ifstream bin("edges.bin", std::ios::binary);
+        int32_t new_from;
+        int32_t new_to;
+        while (bin.read(reinterpret_cast<char*>(&new_from), sizeof(new_from))) { 
+            bin.read(reinterpret_cast<char*>(&new_to), sizeof(new_to));
             new_vertex_rank[new_to] += damping_vertex * vertex_rank[new_from] / degree_vertex[new_from];
         }
-        f.close();
+        bin.close();
         vertex_rank = new_vertex_rank;
     }
 
-   std::ofstream out(argv[2]);
-   out << "vertex,rank\n";
-   for (int i = 0; i < to_back_id_size; ++i) {
-        out << to_back_id[i] << "," << vertex_rank[i] << "\n";
-   }
-
+    std::ofstream out(argv[2]);
+    out << "vertex,rank" << std::endl;
+    for (int i = 0; i < to_back_id_size; ++i) {
+        out << to_back_id[i] << "," << vertex_rank[i] << std::endl;
+    }
+    std::remove("edges.bin");
 
     return 0;
 }
