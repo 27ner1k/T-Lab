@@ -5,9 +5,9 @@
 #include <vector>
 #include <unordered_map>
 
-int main(){
+int main(int argc, char* argv[]) {
 
-    std::ifstream f("tests/data_2_dangling.csv");
+    std::ifstream f(argv[1]);
     std::string line;
     std::getline(f, line);
     std::vector<std::pair<int32_t, int32_t>> edges(0);
@@ -67,9 +67,12 @@ int main(){
         vertex_rank = new_vertex_rank;
     }
 
-    for (double i : vertex_rank){
-        std::cout << i << std::endl;
-    }
+   std::ofstream out(argv[2]);
+   out << "vertex,rank\n";
+   for (int i = 0; i < to_back_id_size; ++i) {
+        out << to_back_id[i] << "," << vertex_rank[i] << "\n";
+   }
+
 
     return 0;
 }
