@@ -20,12 +20,11 @@ int main(){
         edges.push_back(std::pair<int32_t, int32_t>{std::stoi(from), std::stoi(to)});
         lenght += 1;
     }
-    std::cout << lenght << "\n";
     f.close();
 
     std::unordered_map<int32_t, int32_t> to_new_id;
     std::vector<int32_t> to_back_id;
-    int now = 0;
+    int32_t now = 0;
     for (auto[from, to] : edges){
         if (to_new_id.find(from) == to_new_id.end()){
             to_new_id[from] = now;
@@ -38,6 +37,39 @@ int main(){
             now += 1;
         }
     }
-    std::cout << now << std::endl;
+    
+    int32_t to_back_id_size = to_back_id.size();
+    std::vector<int32_t> degree_vertex(to_back_id_size, 0);
+    for (auto[from, to] : edges){
+        degree_vertex[to_new_id[from]] += 1;
+    }
+    std::vector<double> vertex_rank(to_back_id_size, double (1 / double(to_back_id_size)));
+    std::vector<double> new_vertex_rank(to_back_id_size, double (1 / double(to_back_id_size)));
+    constexpr double damping_vertex = 0.85;
+
+    for (int iter = 0; iter < 100; ++iter) {
+        double dangling_sum = 0;
+        for (int i = 0; i < to_back_id_size; ++i){
+            if (degree_vertex[i] == 0){
+                dangling_sum += vertex_rank[i];
+            }
+        }
+
+        double base = (1.0 - damping_vertex) / to_back_id_size + damping_vertex * dangling_sum / to_back_id_size;
+        for (int i = 0; i < to_back_id_size; ++i)
+            new_vertex_rank[i] = base;
+
+        for (auto [from, to] : edges) {
+            int new_from = to_new_id[from];
+            int new_to = to_new_id[to];
+            new_vertex_rank[new_to] += damping_vertex * vertex_rank[new_from] / degree_vertex[new_from];
+        }
+        vertex_rank = new_vertex_rank;
+    }
+
+    for (double i : vertex_rank){
+        std::cout << i << std::endl;
+    }
+
     return 0;
 }
