@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
     std::vector<int32_t> buf(edges_per_block * 2);
     
 
-    for (int iter = 0; iter < 200; ++iter) {
+    for (int iter = 0; iter < 100; ++iter) {
         double dangling_sum = 0;
         #pragma omp parallel for reduction(+:dangling_sum)
         for (int i = 0; i < to_back_id_size; ++i){
@@ -86,7 +86,6 @@ int main(int argc, char* argv[]) {
         }
         bin.close();
         vertex_rank = new_vertex_rank;
-        if (iter == 99) std::cerr << "dangling_sum: " << dangling_sum << "\n";
     }
 
     std::ofstream out(argv[2]);
