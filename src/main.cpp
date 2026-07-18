@@ -50,9 +50,12 @@ int main(int argc, char* argv[]) {
     std::vector<double> vertex_rank(to_back_id_size, double (1 / double(to_back_id_size)));
     std::vector<double> new_vertex_rank(to_back_id_size, double (1 / double(to_back_id_size)));
     constexpr double damping_vertex = 0.85;
+    constexpr int32_t edges_per_block = 65536;
+    std::vector<int32_t> buf(edges_per_block * 2);
 
     for (int iter = 0; iter < 100; ++iter) {
         double dangling_sum = 0;
+        #pragma omp parallel for reduction(+:dangling_sum)
         for (int i = 0; i < to_back_id_size; ++i){
             if (degree_vertex[i] == 0){
                 dangling_sum += vertex_rank[i];
@@ -60,15 +63,22 @@ int main(int argc, char* argv[]) {
         }
 
         double base = (1.0 - damping_vertex) / to_back_id_size + damping_vertex * dangling_sum / to_back_id_size;
+        #pragma omp parallel for
         for (int i = 0; i < to_back_id_size; ++i)
             new_vertex_rank[i] = base;
 
         std::ifstream bin("edges.bin", std::ios::binary);
-        int32_t new_from;
-        int32_t new_to;
-        while (bin.read(reinterpret_cast<char*>(&new_from), sizeof(new_from))) { 
-            bin.read(reinterpret_cast<char*>(&new_to), sizeof(new_to));
-            new_vertex_rank[new_to] += damping_vertex * vertex_rank[new_from] / degree_vertex[new_from];
+        while (bin) {
+            bin.read(reinterpret_cast<char*>(buf.data()), edges_per_block * 2 * sizeof(int32_t));
+            long long got = bin.gcount() / (2 * sizeof(int32_t));
+            #pragma omp parallel for
+            for (long long i = 0; i < got; ++i) {
+                int32_t new_from = buf[2 * i];
+                int32_t new_to = buf[2 * i + 1];
+                double contrib = damping_vertex * vertex_rank[new_from] / degree_vertex[new_from];
+                #pragma omp atomic
+                new_vertex_rank[new_to] += contrib;
+            }
         }
         bin.close();
         vertex_rank = new_vertex_rank;
