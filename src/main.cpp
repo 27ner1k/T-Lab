@@ -5,6 +5,8 @@
 #include <vector>
 #include <unordered_map>
 #include <cstdio>
+#include <iomanip> 
+#include <algorithm>
 
 int main(int argc, char* argv[]) {
 
@@ -45,6 +47,7 @@ int main(int argc, char* argv[]) {
     }
     f.close();
     bin.close();
+    
 
     int32_t to_back_id_size = to_back_id.size();
     std::vector<double> vertex_rank(to_back_id_size, double (1 / double(to_back_id_size)));
@@ -52,8 +55,9 @@ int main(int argc, char* argv[]) {
     constexpr double damping_vertex = 0.85;
     constexpr int32_t edges_per_block = 65536;
     std::vector<int32_t> buf(edges_per_block * 2);
+    
 
-    for (int iter = 0; iter < 100; ++iter) {
+    for (int iter = 0; iter < 200; ++iter) {
         double dangling_sum = 0;
         #pragma omp parallel for reduction(+:dangling_sum)
         for (int i = 0; i < to_back_id_size; ++i){
@@ -82,12 +86,21 @@ int main(int argc, char* argv[]) {
         }
         bin.close();
         vertex_rank = new_vertex_rank;
+        if (iter == 99) std::cerr << "dangling_sum: " << dangling_sum << "\n";
     }
 
     std::ofstream out(argv[2]);
+    out << std::fixed << std::setprecision(10);
     out << "vertex,rank" << std::endl;
+
+    std::vector<std::pair<int32_t, double>> result(to_back_id_size);
+
     for (int i = 0; i < to_back_id_size; ++i) {
-        out << to_back_id[i] << "," << vertex_rank[i] << std::endl;
+        result[i] = {to_back_id[i], vertex_rank[i]};
+    }
+    std::sort(result.begin(), result.end());
+    for (const auto& [vertex, rank] : result) {
+        out << vertex << "," << rank << std::endl;
     }
     std::remove("edges.bin");
 

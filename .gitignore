@@ -9,3 +9,5 @@ main
 data/*.csv
 data/snap/
 data/tests_real_result/
+data_6_*
+data/web-Google.txt
