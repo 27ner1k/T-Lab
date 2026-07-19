@@ -10,10 +10,16 @@
 #include <algorithm>
 
 int main(int argc, char* argv[]) {
+
     if (argc < 3) {
         std::cout << "Usage: " << argv[0] << " <input.csv> <output.csv>\n";
         return 0;
     }
+
+    // Записываю все во временный бинарный файл, где сразу хранятся числа, а не строки
+    // чтобы не конвертировать их каждый раз
+    // запоминается максимальный айди, чтобы потом создать вектор данного размера
+
     std::string bin_path = std::string(argv[2]) + ".edges.bin";
     int32_t max_id = -1;
     {
@@ -34,6 +40,11 @@ int main(int argc, char* argv[]) {
             max_id = std::max(max_id, std::max(a, b));
         }
     }
+
+    // Читаем файл еще раз, чтобы создать вспомогательные векторы:
+    // to_new_id - перевод в другую систему айди, так как макс номер айди != количество вершин
+    // to_back_id - чтобы в конце вернуться к исходной системе айди
+    // degree_vertex - количетсов исходящих ребер из вершины, нужное для PageRank
 
     std::ifstream f(argv[1]);
     std::ofstream bin(bin_path, std::ios::binary);
@@ -72,6 +83,12 @@ int main(int argc, char* argv[]) {
     f.close();
     bin.close();
     
+    // Создание еще вспомогательных векторов для PageRank
+    // vertex_rank - вес каждой вершины
+    // new_vertex_rank - тот же вес, чтобы не был одновременно обновлен vertex_rank
+    // damping_vertex - коэффициент затухание
+    // edges_per_block - колличество читаемых байт за один раз
+
     int32_t to_back_id_size = to_back_id.size();
     std::vector<double> vertex_rank(to_back_id_size, double (1 / double(to_back_id_size)));
     std::vector<double> new_vertex_rank(to_back_id_size, double (1 / double(to_back_id_size)));
@@ -79,6 +96,9 @@ int main(int argc, char* argv[]) {
     constexpr int32_t edges_per_block = 65536;
     std::vector<int32_t> buf(edges_per_block * 2);
     
+    // Читаем файл, пока значения не станут отличается на эпсилон
+    // реализован алгоритм PageRank + для оптимизации использовано параллельное выполнение
+    // при сходимости менее чем за 100 итераций цикл завершится
 
     for (int iter = 0; iter < 100; ++iter) {
         double dangling_sum = 0;
@@ -89,6 +109,9 @@ int main(int argc, char* argv[]) {
             }
         }
 
+        // base = телепорт компонент + перераспределение dangling-массы
+        // стандартные издержки PageRank для вершин без исходящих рёбер
+        
         double base = (1.0 - damping_vertex) / to_back_id_size + damping_vertex * dangling_sum / to_back_id_size;
         #pragma omp parallel for
         for (int i = 0; i < to_back_id_size; ++i)
@@ -103,6 +126,11 @@ int main(int argc, char* argv[]) {
                 int32_t new_from = buf[2 * i];
                 int32_t new_to = buf[2 * i + 1];
                 double contrib = damping_vertex * vertex_rank[new_from] / degree_vertex[new_from];
+
+                // atomic: несколько потоков могут одновременно писать в new_vertex_rank[new_to]
+                // для одной и той же вершины (особенно для гиперузлов из условия задачи)
+                // альтернатива - per-thread копии всего вектора, но это O(V) на поток
+
                 #pragma omp atomic
                 new_vertex_rank[new_to] += contrib;
             }
@@ -127,6 +155,9 @@ int main(int argc, char* argv[]) {
     }
     out << std::fixed << std::setprecision(10);
     out << "vertex,rank" << "\n";
+
+    // Переводим результат в старую систему айди, сортируем, чтобы легко сравнить с эталоном
+    // записываю в файл, после чего удаляю бинарный файл, чтобы не засорять проект
 
     std::vector<std::pair<int32_t, double>> result(to_back_id_size);
 

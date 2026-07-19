@@ -2,6 +2,10 @@ import networkx as nx
 import csv
 import sys
 
+# Данный скрипт - уже реализованный PageRank в python через библиотеку
+# нужен для проверки правильности работы моего кода,
+# немного уменьшил порог сходимости в pr, так как иначе этот код не дает той же точности, что мой
+
 edges = []
 with open(sys.argv[1]) as f:
     reader = csv.reader(f)
