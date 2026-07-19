@@ -50,6 +50,10 @@ wget https://snap.stanford.edu/data/soc-LiveJournal1.txt.gz -P data/
 gunzip data/soc-LiveJournal1.txt.gz
 python3 scripts/snap_to_csv.py data/soc-LiveJournal1.txt data/tests/data_7_livejournal.csv
 ```
+
+Если `wget` не может подключиться к SNAP, 
+используйте VPN или скачайте файлы вручную через браузер по ссылкам выше.
+
 ## Запуск на скачанных датасетах
 
 После того как датасеты сконвертированы в CSV (см. раздел "Датасеты"), запусти так же через Docker:
