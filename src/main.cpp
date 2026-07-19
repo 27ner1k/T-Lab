@@ -31,6 +31,9 @@ int main(int argc, char* argv[]) {
         std::string l;
         std::getline(f0, l);
         while (std::getline(f0, l)) {
+            if (l.empty()){
+                continue;
+            }
             std::stringstream ss(l);
             std::string s_from, s_to;
             std::getline(ss, s_from, ',');
@@ -56,6 +59,9 @@ int main(int argc, char* argv[]) {
     int32_t now = 0;
     
     while (std::getline(f, line)) { 
+        if (line.empty()) {
+            continue;
+        }
         std::stringstream ss(line);
         std::string s_from, s_to;
         std::getline(ss, s_from, ',');
@@ -80,6 +86,7 @@ int main(int argc, char* argv[]) {
         bin.write(reinterpret_cast<const char*>(&nf), sizeof(nf));
         bin.write(reinterpret_cast<const char*>(&nt), sizeof(nt));
     }
+    std::vector<int32_t>().swap(to_new_id);
     f.close();
     bin.close();
     
@@ -98,7 +105,7 @@ int main(int argc, char* argv[]) {
     
     // Читаем файл, пока значения не станут отличается на эпсилон
     // реализован алгоритм PageRank + для оптимизации использовано параллельное выполнение
-    // при сходимости менее чем за 100 итераций цикл завершится
+    // при сходимости менее чем за 250 итераций цикл завершится
 
     for (int iter = 0; iter < 250; ++iter) {
         double dangling_sum = 0;

@@ -27,7 +27,7 @@ docker run --rm -v $(pwd)/data:/app/data tlab \
     ./main data/tests/data_1_default.csv data/tests_real_result/data_1_docker.csv
 ```
 
-**Формат входа:** CSV с заголовком `from,to`, дальше парыы `int32,int32` - по одному ребру на строку.
+**Формат входа:** CSV с заголовком `from,to`, дальше пары `int32,int32` - по одному ребру на строку.
 
 **Формат выхода:** CSV с заголовком `vertex,rank`, отсортировано по возрастанию исходного id вершины.
 
@@ -51,8 +51,9 @@ gunzip data/soc-LiveJournal1.txt.gz
 python3 scripts/snap_to_csv.py data/soc-LiveJournal1.txt data/tests/data_7_livejournal.csv
 ```
 
-Если `wget` не может подключиться к SNAP, 
-используйте VPN или скачайте файлы вручную через браузер по ссылкам выше.
+Если `wget` не работает из вашего региона, скачайте файлы вручную по ссылкам SNAP выше
+и положите в папку `data/` под теми же именами (`web-Google.txt.gz` и `soc-LiveJournal1.txt.gz`).
+Дальше `gunzip` и `python3 scripts/snap_to_csv.py ...` — как в командах.
 
 ## Запуск на скачанных датасетах
 
@@ -99,5 +100,5 @@ data/tests_expected/      - эталонные результаты
 data/tests_real_result/   - результаты моего кода
 Dockerfile                - сборка в Ubuntu 22.04
 REPORT.md                 - отчёт по решению
-README.md                 - инструкия по запуску программы
+README.md                 - инструкция по запуску программы
 ```
