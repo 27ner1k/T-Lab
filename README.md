@@ -42,7 +42,7 @@ python3 scripts/snap_to_csv.py data/soc-LiveJournal1.txt data/tests/data_7_livej
 ```
 ## Запуск на скачанных датасетах
 
-После того как датасеты сконвертированы в CSV (см. раздел «Датасеты»), запусти так же через Docker:
+После того как датасеты сконвертированы в CSV (см. раздел "Датасеты"), запусти так же через Docker:
 
 ```bash
 docker run --rm -v $(pwd)/data:/app/data tlab ./main data/tests/data_6_web-Google.csv data/tests_real_result/data_6_result.csv
@@ -52,6 +52,17 @@ docker run --rm -v $(pwd)/data:/app/data tlab ./main data/tests/data_7_livejourn
 Аналогично запускается на любом CSV-файле: ./main <input.csv> <output.csv>.
 
 На LiveJournal (~69M рёбер) полный прогон занимает ~2.5 минуты на 16 ядрах (Redmi Book Pro 14-2024)
+
+## Запуск с ограничением памяти
+
+Главный критерий задания - работа с графом, превышающим доступную RAM. Программа успешно обрабатывает LiveJournal (69M рёбер, ~1 ГБ CSV) в контейнере с 256 МБ RAM:
+
+```bash
+docker run --rm --memory=256m --memory-swap=256m -v $(pwd)/data:/app/data tlab \
+    ./main data/tests/data_7_livejournal.csv data/tests_real_result/data_7_limited.csv
+```
+
+Подробнее о расходе памяти и границах - в [REPORT.md](REPORT.md), раздел "Проверка ограничения памяти на практике".
 
 ## Проверка корректности
 

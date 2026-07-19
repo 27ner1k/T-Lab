@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
     // реализован алгоритм PageRank + для оптимизации использовано параллельное выполнение
     // при сходимости менее чем за 100 итераций цикл завершится
 
-    for (int iter = 0; iter < 100; ++iter) {
+    for (int iter = 0; iter < 250; ++iter) {
         double dangling_sum = 0;
         #pragma omp parallel for reduction(+:dangling_sum)
         for (int i = 0; i < to_back_id_size; ++i){
@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
 
         // base = телепорт компонент + перераспределение dangling-массы
         // стандартные издержки PageRank для вершин без исходящих рёбер
-        
+
         double base = (1.0 - damping_vertex) / to_back_id_size + damping_vertex * dangling_sum / to_back_id_size;
         #pragma omp parallel for
         for (int i = 0; i < to_back_id_size; ++i)
