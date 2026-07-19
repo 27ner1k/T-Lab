@@ -8,7 +8,8 @@ venv/
 main
 data/*.csv
 data/snap/
-data/tests_real_result/
+data/tests_real_result/*
+!data/tests_real_result/.gitkeep
 data_6_*
 data/web-Google.txt
 data_7_*
